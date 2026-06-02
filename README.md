@@ -1,98 +1,117 @@
-# SafeDrive - 졸업작품 안드로이드 앱
+# SafeDrive 🚗
 
-SafeDrive는 운전자의 안전을 모니터링하는 안드로이드 앱입니다.
+> **노인 운전자를 위한 페달 오조작 감지 및 안전운전 보조 앱**
 
-## 기능
+한국교통안전공단(TS) 자동차안전연구원 자료에 따르면, 급발진 의심사고의 **75.2%가 60대 이상**에서 발생하며 대부분 페달 오조작이 원인입니다.  
+SafeDrive는 스마트폰 센서(GPS + 가속도계)를 활용해 위험 운전 패턴을 실시간으로 감지하고, 보호자에게 알림을 전달하는 안드로이드 앱입니다.
 
-- **원형 속도계**: 현재 속도를 시각적으로 표시
-- **운전 상태 모니터링**: 실시간 운전 상태 확인
-- **센서 상태**: GPS 및 가속도계 상태 표시
-- **하단 네비게이션**: Home, History, Analytics, Settings
+---
 
-## 실행 방법
+## 주요 기능
 
-### 1. Android Studio에서 프로젝트 열기
-```bash
-# 프로젝트 폴더를 Android Studio에서 열기
-```
+- **실시간 속도 모니터링**: GPS 기반 원형 속도계 UI
+- **위험 운전 감지**: 급가속 / 급제동 패턴 실시간 감지 및 기록
+- **TTS 음성 안내**: 위험 상황 발생 시 즉각 음성 경고
+- **보호자 SMS 알림**: 위험 이벤트 발생 시 보호자에게 문자 발송
+- **운전 기록 분석**: 주행 이력 및 안전 점수 확인 (History / Analytics)
 
-### 2. Gradle 동기화
-- Android Studio에서 "Sync Now" 버튼 클릭
-- 또는 `./gradlew build` 실행
+---
 
-### 3. 앱 실행
-- 에뮬레이터 또는 실제 기기 연결
-- Run 버튼 클릭 또는 `Shift + F10`
+## 기술 스택
 
-### 4. 필수 권한
-앱 실행 시 다음 권한이 필요합니다:
-- 위치 권한 (GPS)
-- 활동 인식 권한 (가속도계)
+| 분류 | 기술 |
+|---|---|
+| Language | Kotlin |
+| UI | Jetpack Compose, Material 3 |
+| 센서 | GPS, 가속도계 (Accelerometer) |
+| 로컬 DB | SQLite |
+| 알림 | SMS, TTS |
+| Min SDK | Android 7.0 (API 24) |
+
+---
 
 ## 프로젝트 구조
 
 ```
-app/
-├── src/main/java/com/safedrive/
-│   └── MainActivity.kt          # 메인 액티비티
-├── src/main/res/
-│   ├── values/
-│   │   ├── strings.xml          # 앱 문자열 리소스
-│   │   └── themes.xml           # 앱 테마
-│   └── layout/                  # XML 레이아웃 (필요시)
-├── build.gradle.kts             # 앱 레벨 Gradle 설정
-└── AndroidManifest.xml          # 앱 매니페스트
+app/src/main/java/com/safedrive/
+├── model/              # 데이터 모델
+│   ├── DriveLog.kt         - 주행 기록, 안전 점수, 상태 레이블
+│   ├── DrivingModels.kt    - DrivingState, DrivingSession, DrivingContext
+│   ├── LocationData.kt     - GPS 위치/속도 데이터
+│   └── WeeklyStatistics.kt - 주간 통계 집계
+├── service/            # 센서 및 비즈니스 로직
+│   ├── DrivingStateManager.kt  - 가속도계 기반 급가속/급제동 감지
+│   └── GpsManager.kt           - GPS 속도 수집 및 스무딩
+├── repository/         # 데이터 저장소
+│   └── SafeDriveDbHelper.kt    - SQLite CRUD, 주간 통계 쿼리
+├── detection/          # 급발진 감지 알고리즘
+│   └── SuddenAccelerationDetector.kt  - 6조건 중 3개 이상 감지 로직
+├── screens/            # 화면 UI (Jetpack Compose)
+│   ├── AnalyticsScreens.kt     - 주간 통계, 그래프
+│   └── SettingsScreens.kt      - 보호자 설정, 차량 종류 선택
+├── utils/              # 유틸리티
+│   ├── PreferencesManager.kt   - SharedPreferences 래퍼
+│   ├── SmsHelper.kt            - 보호자 SMS 발송
+│   ├── TextToSpeechHelper.kt   - TTS 음성 경고
+│   └── PermissionHelper.kt     - 런타임 권한 처리
+└── MainActivity.kt     # 앱 진입점, 홈/히스토리 화면
 ```
 
-## 주요 컴포넌트
+---
 
-### CircularSpeedGauge
-- 원형 속도계 UI 컴포넌트
-- 파란색 진행률 표시
-- 45km/h 속도 표시
+## 실행 방법
 
-### DrivingStatusSection
-- 운전 상태 정보 표시
-- "정상 주행중입니다" 메시지
-- 초록색 상태 표시
+### 1. 프로젝트 클론
+```bash
+git clone https://github.com/seungwon00/SafeDrive.git
+```
 
-### SensorStatusSection
-- GPS 및 가속도계 상태 표시
-- 실시간 센서 정보
+### 2. Android Studio에서 열기
+- Android Studio Hedgehog 이상 권장
+- `Sync Now` 클릭 또는 `./gradlew build`
 
-### BottomNavigationBar
-- 4개 탭 네비게이션
-- Home, History, Analytics, Settings
+### 3. 필수 권한
+앱 실행 시 아래 권한이 필요합니다:
+- 위치 권한 (GPS)
+- 활동 인식 권한 (가속도계)
 
-## 기술 스택
+### 4. 실행
+```bash
+# 디버그 빌드
+./gradlew assembleDebug
 
-- **Kotlin**: 프로그래밍 언어
-- **Jetpack Compose**: UI 프레임워크
-- **Material 3**: 디자인 시스템
-- **Android API 24+**: 최소 지원 버전
+# 테스트
+./gradlew test
+```
+
+---
+
+## 현재 한계 및 개선 예정
+
+현재 버전은 **로컬 앱** 수준으로, 아래 기능들이 미구현 상태입니다.  
+Spring Boot 서버 연동을 통해 실제 서비스 수준으로 개선할 예정입니다.
+
+### 개선 예정 목록
+- [ ] **Spring Boot 서버 개발** — 주행 데이터 수집 및 저장 API
+- [ ] **AWS 배포** — EC2 + RDS 기반 실서비스 환경 구성
+- [ ] **사용자 인증** — 로그인/로그아웃, 보호자 계정 관리
+- [ ] **운전 점수 비교** — 다른 운전자와 점수 비교 기능 실제 구현 (현재 미구현)
+- [ ] **안전 점수 공식 개선** — 주행 거리 기반 정규화 적용
+- [ ] **노인 UX 개선** — 큰 버튼, 고대비 색상, 음성 위주 인터페이스
+- [ ] **Flutter 리팩토링** — Android / iOS 크로스플랫폼 지원
+
+---
+
+## 개발 배경
+
+급발진 의심 사고의 법적 판정 기준이 모호하고, 실제로는 대부분 페달 오조작이 원인임에도 불구하고 고령 운전자를 위한 예방 솔루션이 부족하다는 문제의식에서 출발했습니다.  
+정부 공식 자료(TS 자동차안전연구원)를 참고해 타깃과 기능을 설계했습니다.
+
+---
 
 ## 개발 환경
 
 - Android Studio Hedgehog 이상
 - Kotlin 1.9.10
 - Compose BOM 2023.10.01
-- Min SDK: 24 (Android 7.0)
 - Target SDK: 34 (Android 14)
-
-## 빌드 명령어
-
-```bash
-# 디버그 빌드
-./gradlew assembleDebug
-
-# 릴리즈 빌드
-./gradlew assembleRelease
-
-# 테스트 실행
-./gradlew test
-
-# 정리
-./gradlew clean
-```
-# SafeDrive
-개인 포트폴리오 "SafeDrive" 입니다.
